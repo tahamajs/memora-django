@@ -8,16 +8,57 @@
 
 **memora‑django** is a reusable Django backend for the **Memora** local‑first note‑taking platform. It provides a full REST API with AI integration, Git sync, and dozens of enterprise features out of the box.
 
-Add it to any Django project and instantly get:
+Use it as a **standalone backend** or pair it with the **Gotion Go microservice** to offload heavy tasks like AI summarisation, full‑text search, and image processing. Together they form a **hybrid architecture** that gives you the rapid development of Django and the raw performance of Go where it matters.
 
-- ✅ Complete note management with Markdown & versioning
-- 🤖 AI‑powered summarisation, tagging, and writing improvement
-- 🔄 Automatic Git version control & GitHub sync
-- 🔬 Research mode with methodology tracking
-- 🔐 JWT, OAuth2, TOTP, and API key authentication
-- 📎 File attachments with multiple storage backends
-- 📊 Admin dashboard, Prometheus metrics, audit logging
-- … and 60+ more modules
+---
+
+## 🧩 Hybrid Architecture with Gotion
+
+memora‑django and Gotion are designed to complement each other.
+
+|                  | memora‑django (Python) | Gotion (Go)         |
+|------------------|------------------------|---------------------|
+| **Primary role** | Web API, user management, file handling, task orchestration | Heavy AI, full‑text search, image processing, background jobs |
+| **Strengths**    | Rich ecosystem, admin, ORM, rapid prototyping | Concurrency, low memory, sub‑millisecond operations |
+| **Typical use**  | Handles all CRUD, authentication, webhooks, and standard API | Offloaded by Django for CPU‑intensive or latency‑critical tasks |
+
+### How they work together
+
+1. **Django** receives the user request.
+2. If the request involves a heavy task (e.g., AI summarisation of a large note, OCR on an uploaded image, or a complex full‑text search), Django **enqueues a job** (via Celery + Redis) that calls the Gotion microservice.
+3. **Gotion** processes the task quickly and returns the result, which Django stores and returns to the client.
+
+You get the best of both worlds: Django’s mature ecosystem for rapid development and Go’s raw speed for heavy lifting.
+
+---
+
+## 🚀 Deployment Topologies
+
+### Option 1: Django‑only (light / medium loads)
+
+For moderate traffic, memora‑django handles everything itself. The built‑in Celery workers process background tasks in Python.
+
+```
+┌──────────┐     HTTP      ┌─────────────────┐
+│  Client  │ ──────────────│  memora‑django   │
+└──────────┘               │  (Celery worker) │
+                            └─────────────────┘
+```
+
+### Option 2: Hybrid (heavy loads)
+
+Add Gotion as a sidecar microservice. Django offloads heavy tasks to Gotion via Celery + Redis.
+
+```
+┌──────────┐     HTTP      ┌─────────────────┐     Redis      ┌──────────┐
+│  Client  │ ──────────────│  memora‑django   │ ──────────────│  Gotion  │
+└──────────┘               │  (Celery worker) │               │  (Go)    │
+                            └─────────────────┘               └──────────┘
+```
+
+### Option 3: Full Microservices
+
+Use a dedicated API gateway (e.g., Nginx, Traefik) to route directly to Gotion for search or AI endpoints, while Django handles the rest.
 
 ---
 
@@ -27,11 +68,11 @@ Add it to any Django project and instantly get:
 pip install memora-django
 ```
 
-Requires **Python 3.10+** and **Django 5.0+** (4.2 supported with limited features).
+Requires **Python 3.10+** and **Django 5.0+**.
 
 ---
 
-## 🚀 Quick Start
+## 🏁 Quick Start
 
 ### 1. Add the apps to `INSTALLED_APPS`
 
@@ -78,22 +119,17 @@ python manage.py migrate
 
 ### 5. Set environment variables
 
-Create a `.env` file or export:
-
 ```bash
 DJANGO_SECRET_KEY=your-secret-key
 OPENAI_API_KEY=sk-...
 GITHUB_TOKEN=ghp_...
-DATABASE_URL=sqlite:///db.sqlite3   # or PostgreSQL
 ```
-
-The full list of configuration options is in the [Configuration](#-configuration) section.
 
 ---
 
 ## ⚙️ Configuration
 
-All settings can be configured via environment variables or Django settings.
+All settings can be configured via environment variables or directly in Django’s `settings.py`.
 
 ### Core
 
@@ -139,13 +175,36 @@ All settings can be configured via environment variables or Django settings.
 | `RATE_LIMIT`          | `100`   | Requests per minute per IP      |
 | `CORS_ALLOWED_ORIGINS`| `http://localhost:3000` | Allowed origins   |
 
-> All settings can also be placed in Django’s `settings.py` with the same names (uppercase).
+### Gotion Integration
+
+| Variable                | Default | Description                              |
+|-------------------------|---------|------------------------------------------|
+| `GOTION_ENABLED`        | `False` | Enable offloading to Gotion              |
+| `GOTION_BASE_URL`       | `http://localhost:8080` | Gotion API base URL             |
+| `GOTION_AUTH_TOKEN`     |         | Shared JWT or API key for internal calls |
+
+---
+
+## 🧵 Offloading to Gotion
+
+When `GOTION_ENABLED=True`, memora‑django will automatically delegate the following operations to Gotion:
+
+- **AI summarisation** – large text summarisation uses Gotion’s low‑latency AI service
+- **Full‑text search** – queries bypass Django’s ORM and use Bleve via Gotion
+- **Image OCR / processing** – CPU‑intensive image tasks are sent to Gotion
+- **PDF export** – heavy PDF generation is handled by Gotion’s chromedp worker
+
+### How to enable
+
+1. Start a Gotion instance (see [Gotion README](https://github.com/yourusername/gotion)).
+2. Set the environment variables above.
+3. memora‑django will automatically route eligible tasks to Gotion. No code changes needed.
 
 ---
 
 ## 📡 API Reference
 
-When the server is running, interactive Swagger documentation is available at:
+Interactive Swagger documentation is available at:
 
 ```
 http://localhost:8000/api/v1/docs/
@@ -167,67 +226,15 @@ http://localhost:8000/api/v1/docs/
 | GDPR          | `/gdpr/`                      | Data export, account deletion |
 | Webhooks      | `/api/v1/webhooks/`           | Register, list, trigger |
 
-### Example: Create a note
-
-```http
-POST /api/v1/notes/
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "title": "My Note",
-  "content": "# Hello\nThis is markdown.",
-  "category_id": 1,
-  "tag_ids": [1, 2]
-}
-```
-
-### Example: AI summarization
-
-```http
-POST /api/v1/ai/summarize/
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "content": "Long text to summarize...",
-  "style": "concise"
-}
-```
-
----
-
-## 🧱 Architecture
-
-```
-┌─────────────────────────────┐
-│          Your Django App     │
-├─────────────────────────────┤
-│          memora‑django       │
-│  ┌─────────────────────────┐│
-│  │        API Layer        ││
-│  │  (REST + GraphQL + WS)  ││
-│  ├─────────────────────────┤│
-│  │     Service Layer       ││
-│  │  (Notes, AI, Git, ...)  ││
-│  ├─────────────────────────┤│
-│  │       Data Layer        ││
-│  │  (SQLite / PostgreSQL)  ││
-│  └─────────────────────────┘│
-└─────────────────────────────┘
-```
-
 ---
 
 ## 🧪 Testing
-
-Run the included test suite:
 
 ```bash
 python manage.py test apps
 ```
 
-To run tests with coverage:
+With coverage:
 
 ```bash
 coverage run manage.py test apps
@@ -250,10 +257,12 @@ Pull requests are welcome! See the [main Memora repository](https://github.com/y
 
 ## 🔗 Links
 
-- **Homepage:** https://github.com/yourusername/memora
+- **Memora (full project):** https://github.com/yourusername/memora
+- **Gotion (Go backend):** https://github.com/yourusername/gotion
 - **Documentation:** https://github.com/yourusername/memora/tree/main/docs
 - **Issue tracker:** https://github.com/yourusername/memora/issues
 
 ---
 
-**memora‑django** — the fastest way to build a local‑first, AI‑powered note‑taking backend with Django.
+**memora‑django** — the batteries‑included Django backend that scales with Gotion when you need raw Go performance.
+``
