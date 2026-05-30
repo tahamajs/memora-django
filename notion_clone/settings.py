@@ -22,9 +22,25 @@ INSTALLED_APPS = [
     'django_filters',
     'markdownx',
     'notes',
+        'apps.tasks',
+    'apps.bookmarks',
+    'apps.kanban',
+    'apps.calendar',
+    'apps.notifications',
+    'apps.storage',
+    'channels',
+
     'ai_service',
 ]
 
+
+ASGI_APPLICATION = 'notion_clone.asgi.application'
+DEFAULT_FILE_STORAGE = 'apps.storage.backends.S3Storage'
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', '')
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', None)
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -34,6 +50,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+        'core.middleware.quota.QuotaMiddleware',
+
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -90,10 +108,4 @@ GITHUB_USERNAME = os.getenv('GITHUB_USERNAME', '')
 GITHUB_REPO = os.getenv('GITHUB_REPO', '')
 NOTES_DIR = BASE_DIR / 'notes_repo'
 
-
-
-MIDDLEWARE = [
-    # ... existing
-    'core.middleware.quota.QuotaMiddleware',
-]
 
