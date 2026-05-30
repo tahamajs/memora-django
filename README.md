@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/yourusername/memora/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/memora/actions)
 
-**memora‑django** is a reusable Django backend for the **Memora** local‑first note‑taking platform. It provides a full REST API with AI integration, Git sync, and dozens of enterprise features out of the box.
+**memora‑django** is a reusable Django backend for the **Memora** local‑first note‑taking platform. It provides a full REST API with AI integration, Git sync, and **60+ enterprise features** out of the box.
 
 Use it as a **standalone backend** or pair it with the **Gotion Go microservice** to offload heavy tasks like AI summarisation, full‑text search, and image processing. Together they form a **hybrid architecture** that gives you the rapid development of Django and the raw performance of Go where it matters.
 
@@ -62,13 +62,108 @@ Use a dedicated API gateway (e.g., Nginx, Traefik) to route directly to Gotion f
 
 ---
 
+## ✨ Features
+
+memora‑django includes **every** module needed for a modern knowledge management platform.
+
+### Core Note Management
+- Full CRUD with Markdown & HTML storage
+- Categories, tags, favorites, pin, archive
+- Note versioning with history, diff, and restore
+- Bulk create / delete operations
+- Import from Markdown, JSON, and directory
+- Export to JSON, Markdown, HTML, PDF
+- Templates for quick note creation
+- Calendar view (notes by date)
+- Reminders & deadlines
+
+### AI & Productivity (OpenAI / Anthropic)
+- Smart summarisation with multiple styles
+- Auto‑tag generation
+- Writing improvement (Professional, Casual, Concise, Academic, Creative, Technical)
+- Content analysis (sentiment, keywords, reading level, topics)
+- OCR text extraction from images (Tesseract integration)
+- Smart recommendations (TF‑IDF cosine similarity)
+- Meeting notes organiser
+- Task extraction from text
+
+### Collaboration
+- Threaded comments on notes
+- Note sharing with granular permissions (read / write)
+- Real‑time updates via WebSocket and Server‑Sent Events (SSE)
+- Collaborative editing with Operational Transformation (OT)
+
+### Authentication & Security
+- JWT authentication with refresh tokens
+- API key management (scoped, revocable, expiration)
+- OAuth2 (Google, GitHub, GitLab)
+- OpenID Connect (OIDC) SSO
+- TOTP two‑factor authentication
+- SCIM 2.0 user provisioning
+- AES‑256 encryption at rest for sensitive note content
+- Rate limiting (in‑memory or Redis)
+- CORS, security headers, request ID, circuit breaker
+
+### File Handling
+- Multipart upload with size limits
+- Multiple storage backends: local disk, AWS S3, Cloudflare R2, MinIO
+- Image processing: resize, thumbnail generation, compression
+- Attachment metadata management
+
+### Search & Discovery
+- Full‑text search with real‑time indexing (Whoosh or Bleve via Gotion)
+- Advanced filtering, sorting, and pagination
+- Related notes recommendations
+
+### Version Control
+- Automatic Git commits on every save
+- Notes stored as clean Markdown files
+- GitHub sync (push / pull)
+- Commit history per note
+
+### Administration & Monitoring
+- Admin dashboard API (total notes, users, trends)
+- Prometheus metrics endpoint
+- Structured logging (via Python logging or structlog)
+- Health check endpoints (simple + detailed)
+- Sentry error tracking integration
+- Postman collection auto‑generation
+
+### Multi‑Tenancy
+- Tenant isolation via header or subdomain
+- Per‑tenant data scoping and quotas
+
+### Extensibility
+- Webhooks for external integrations (Slack, Discord, custom)
+- Custom metadata schemas per category
+- Plugin system (via Django signals and custom backends)
+
+### Background Processing
+- Celery task queue for AI, exports, backups
+- Celery Beat for periodic jobs (daily backup, cleanup)
+
+### Compliance & Governance
+- GDPR data export & account deletion
+- Usage quotas (storage, notes, API calls)
+- Full audit logging of all changes
+- Feature flags for runtime toggling
+
+### Developer Experience
+- Swagger/OpenAPI docs at `/api/v1/docs/`
+- Django Admin panel customised for notes, users, research
+- Configurable via environment variables or `settings.py`
+- Comprehensive test suite with factories
+- Works with Django’s built‑in development server or Gunicorn
+
+---
+
 ## 📦 Installation
 
 ```bash
 pip install memora-django
 ```
 
-Requires **Python 3.10+** and **Django 5.0+**.
+Requires **Python 3.10+** and **Django 5.0+** (Django 4.2 supported with limited features).
 
 ---
 
@@ -98,6 +193,8 @@ urlpatterns = [
     path('api/v1/', include('apps.notes.urls')),
     path('api/v1/auth/', include('apps.users.urls')),
     path('api/v1/ai/', include('apps.ai_service.urls')),
+    path('api/v1/github/', include('apps.git_service.urls')),
+    # Admin customisation is automatically registered
 ]
 ```
 
@@ -108,6 +205,8 @@ MIDDLEWARE = [
     # ...
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'core.middleware.RequestLogMiddleware',
+    'core.middleware.SecurityHeadersMiddleware',
 ]
 ```
 
@@ -119,11 +218,16 @@ python manage.py migrate
 
 ### 5. Set environment variables
 
+Create a `.env` file or export:
+
 ```bash
 DJANGO_SECRET_KEY=your-secret-key
 OPENAI_API_KEY=sk-...
 GITHUB_TOKEN=ghp_...
+DATABASE_URL=sqlite:///db.sqlite3   # or PostgreSQL
 ```
+
+The full list of configuration options is below.
 
 ---
 
@@ -140,7 +244,7 @@ All settings can be configured via environment variables or directly in Django�
 | `ALLOWED_HOSTS`       | `*`             | Comma‑separated list of hosts     |
 | `DATABASE_URL`        | `sqlite:///db.sqlite3` | Database connection         |
 
-### AI (OpenAI)
+### AI (OpenAI / Anthropic)
 
 | Variable              | Default | Description            |
 |-----------------------|---------|------------------------|
@@ -215,7 +319,7 @@ http://localhost:8000/api/v1/docs/
 | Group         | Base Path                     | Description |
 |---------------|-------------------------------|-------------|
 | Notes         | `/api/v1/notes/`              | CRUD, archive, favorite, versions, bulk, export, calendar |
-| AI            | `/api/v1/ai/`                 | Summarize, generate tags, improve writing, analyze |
+| AI            | `/api/v1/ai/`                 | Summarize, generate tags, improve writing, analyze, OCR |
 | Comments      | `/api/v1/notes/{id}/comments/`| Threaded comments |
 | Attachments   | `/api/v1/attachments/`        | Upload, download, image processing |
 | Auth          | `/api/v1/auth/`               | Login, register, OAuth2, OIDC, TOTP, API keys |
@@ -265,4 +369,4 @@ Pull requests are welcome! See the [main Memora repository](https://github.com/y
 ---
 
 **memora‑django** — the batteries‑included Django backend that scales with Gotion when you need raw Go performance.
-``
+
