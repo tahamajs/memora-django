@@ -366,3 +366,24 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*'),
     },
 }
+
+
+
+
+# Kanban, Calendar, Notifications
+INSTALLED_APPS += [
+    'apps.kanban',
+    'apps.calendar',
+    'apps.notifications',
+]
+
+# Channels
+ASGI_APPLICATION = 'notion_clone.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}

@@ -43,7 +43,9 @@ path('api/v1/kanban/', include('apps.kanban.urls')),
 path('api/v1/calendar/', include('apps.calendar.urls')),
 path('ws/notifications/', include('apps.notifications.routing')),
 
-
+path('api/v1/kanban/', include('apps.kanban.urls')),
+path('api/v1/calendar/', include('apps.calendar.urls')),
+path('api/v1/notifications/', include('apps.notifications.urls')),
 
 ]
 
