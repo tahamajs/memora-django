@@ -89,3 +89,11 @@ GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', '')
 GITHUB_USERNAME = os.getenv('GITHUB_USERNAME', '')
 GITHUB_REPO = os.getenv('GITHUB_REPO', '')
 NOTES_DIR = BASE_DIR / 'notes_repo'
+
+
+
+MIDDLEWARE = [
+    # ... existing
+    'core.middleware.quota.QuotaMiddleware',
+]
+

@@ -83,3 +83,36 @@ class ResearchNoteAdmin(admin.ModelAdmin):
     list_filter = ['status']
     search_fields = ['title', 'content']
     readonly_fields = ['created_at', 'updated_at']
+
+
+
+from .models import Reminder, NoteTemplate, CustomSchema, Share, Comment, NoteIntegration, AuditLog
+
+@admin.register(Reminder)
+class ReminderAdmin(admin.ModelAdmin):
+    list_display = ['note', 'user', 'remind_at', 'sent']
+
+@admin.register(NoteTemplate)
+class TemplateAdmin(admin.ModelAdmin):
+    list_display = ['name', 'category', 'created_by']
+
+@admin.register(CustomSchema)
+class SchemaAdmin(admin.ModelAdmin):
+    list_display = ['category']
+
+@admin.register(Share)
+class ShareAdmin(admin.ModelAdmin):
+    list_display = ['note', 'user', 'permission']
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ['note', 'user', 'created_at']
+
+@admin.register(NoteIntegration)
+class IntegrationAdmin(admin.ModelAdmin):
+    list_display = ['note', 'platform']
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ['user', 'action', 'entity_type', 'created_at']
+    readonly_fields = ['user', 'action', 'entity_type', 'entity_id', 'details', 'created_at']

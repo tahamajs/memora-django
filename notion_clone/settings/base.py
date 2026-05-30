@@ -338,3 +338,31 @@ sentry_sdk.init(
     send_default_pii=True,
     environment=os.environ.get('ENVIRONMENT', 'development'),
 )
+
+
+# Feature Flags
+FEATURE_AI_SUMMARIZATION = True
+FEATURE_GIT_SYNC = True
+FEATURE_OCR = True
+FEATURE_IMAGE_PROCESSING = True
+
+# Quotas
+QUOTA_MAX_NOTES = 100
+QUOTA_MAX_STORAGE_MB = 100
+
+# Encryption
+ENCRYPTION_KEY = 'your-fernet-key-here'   # generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+# Gotion Integration
+GOTION_ENABLED = False
+GOTION_BASE_URL = 'http://localhost:8080'
+GOTION_AUTH_TOKEN = ''
+
+# Celery Beat schedule for reminders
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'check-reminders-every-minute': {
+        'task': 'apps.notes.tasks.check_reminders',
+        'schedule': crontab(minute='*'),
+    },
+}
