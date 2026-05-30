@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+recursive-include apps/ *
+recursive-include notion_clone/ *
+recursive-include core/ *
+recursive-include templates/ *
+recursive-include static/ *
+recursive-include migrations/ *
