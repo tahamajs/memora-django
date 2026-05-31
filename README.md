@@ -4,7 +4,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/memora-django.svg)](https://pypi.org/project/memora-django)
 [![Django Versions](https://img.shields.io/badge/django-5.0%20%7C%204.2-blue.svg)](https://www.djangoproject.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/yourusername/memora/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/memora/actions)
+[![CI](https://github.com/tahamajs/memora/actions/workflows/ci.yml/badge.svg)](https://github.com/tahamajs/memora/actions)
 
 **memora‑django** is a reusable Django backend for the **Memora** local‑first note‑taking platform. It provides a full REST API with AI integration, Git sync, and **60+ enterprise features** out of the box.
 
@@ -300,7 +300,7 @@ When `GOTION_ENABLED=True`, memora‑django will automatically delegate the foll
 
 ### How to enable
 
-1. Start a Gotion instance (see [Gotion README](https://github.com/yourusername/gotion)).
+1. Start a Gotion instance (see [Gotion README](https://github.com/tahamajs/gotion)).
 2. Set the environment variables above.
 3. memora‑django will automatically route eligible tasks to Gotion. No code changes needed.
 
@@ -355,18 +355,17 @@ MIT – see [LICENSE](LICENSE) for details.
 
 ## 🤝 Contributing
 
-Pull requests are welcome! See the [main Memora repository](https://github.com/yourusername/memora) for guidelines.
+Pull requests are welcome! See the [main Memora repository](https://github.com/tahamajs/memora) for guidelines.
 
 ---
 
 ## 🔗 Links
 
-- **Memora (full project):** https://github.com/yourusername/memora
-- **Gotion (Go backend):** https://github.com/yourusername/gotion
-- **Documentation:** https://github.com/yourusername/memora/tree/main/docs
-- **Issue tracker:** https://github.com/yourusername/memora/issues
+- **Memora (full project):** https://github.com/tahamajs/memora
+- **Gotion (Go backend):** https://github.com/tahamajs/gotion
+- **Documentation:** https://github.com/tahamajs/memora/tree/main/docs
+- **Issue tracker:** https://github.com/tahamajs/memora/issues
 
 ---
 
 **memora‑django** — the batteries‑included Django backend that scales with Gotion when you need raw Go performance.
-
